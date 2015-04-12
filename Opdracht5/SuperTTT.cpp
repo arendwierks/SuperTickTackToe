@@ -11,13 +11,25 @@ SuperTTT::SuperTTT(Side s) : prow(-1), pcolumn(-1), lastPlayer(s){
 //SuperTTT::Value SuperTTT::value(int depth, int board) const {
 int SuperTTT::value(int depth, int board) const {
 	if (depth == MAX_DEPTH){
-		int countComputer = 0;
-		for_each(boards[board].cbegin(), boards[board].cend(), [&](Side s){
-			if (s == COMPUTER){
-				countComputer++;
-			}
-		});
-		return isAWin(COMPUTER, board) ? COMPUTER_WINS : isAWin(HUMAN, board) ? HUMAN_WINS : boardIsFull() ? DRAW : countComputer;
+		if (isAWin(COMPUTER, board)){
+			return COMPUTER_WINS;
+		}
+		else if (isAWin(HUMAN, board)){
+			return HUMAN_WINS;
+		}
+		else if (boardIsFull()){
+			return DRAW;
+		}
+		else{
+			int countComputer = 0;
+			for_each(boards[board].cbegin(), boards[board].cend(), [&](Side s){
+				if (s == COMPUTER){
+					countComputer++;
+				}
+			});
+			return countComputer;
+		}		
+		//return isAWin(COMPUTER, board) ? COMPUTER_WINS : isAWin(HUMAN, board) ? HUMAN_WINS : boardIsFull() ? DRAW : countComputer;
 	}
 	else if (depth == MAX_DEPTH + 1){
 		return isAWin(COMPUTER, board) ? COMPUTER_WINS : isAWin(HUMAN, board) ? HUMAN_WINS : boardIsFull() ? DRAW : UNDECIDED;
@@ -33,10 +45,10 @@ int SuperTTT::value(int depth, int board) const {
 int SuperTTT::chooseComputerMove(int& bestRow, int& bestColumn, int& bestBoard, int alpha, int beta, int depth) {
 	//Value bestValue = value(depth, bestBoard);
 	int bestValue = value(depth, bestBoard);
-	Board pMainboard = boards[0]; // preserve state of big board before function a move is done
 	if (depth < MAX_DEPTH){
 		++movesConsidered;
 		if (bestValue == UNDECIDED) {
+			Board pMainboard = boards[0]; // preserve state of big board before function a move is done
 			//for (int board = 1; board < 10; ++board){
 				//if (!checkFalseBoardMove(board) && !isAWin(HUMAN, board) && !isAWin(COMPUTER, board)){
 					for (int row = 0; alpha < beta && row < 3; ++row) {
@@ -46,7 +58,7 @@ int SuperTTT::chooseComputerMove(int& bestRow, int& bestColumn, int& bestBoard, 
 								checkWins(COMPUTER);
 								int dummyRow, dummyColumn, dummyBoard;
 								if (bestBoard != 0){									
-									dummyBoard = (column + 1) + (row * 3);; // calculate on which board next move must be set	
+									dummyBoard = (column + 1) + (row * 3); // calculate on which board next move must be set	
 									//giveRandomBoardWhenWon(dummyBoard); // to prevent move on board that is won
 									if (dummyBoard < 0 || dummyBoard > 9){
 										dummyBoard = 0;
@@ -77,6 +89,16 @@ int SuperTTT::chooseComputerMove(int& bestRow, int& bestColumn, int& bestBoard, 
 			bestValue = alpha;
 		}
 	}
+	//else{
+	//	// make value less when move causes next move to be set on a board that is won
+	//	int nextBoard = (bestColumn + 1) + (bestRow * 3);
+	//	if (isAWin(COMPUTER, nextBoard) || isAWin(HUMAN, nextBoard)){
+	//		bestValue = 0;
+	//	}
+	//	/*	if (boards[0](bestRow, bestColumn) != EMPTY){
+	//	bestValue = 0;
+	//	}*/
+	//}
 	return bestValue;
 }
 
@@ -84,10 +106,10 @@ int SuperTTT::chooseComputerMove(int& bestRow, int& bestColumn, int& bestBoard, 
 int SuperTTT::chooseHumanMove(int& bestRow, int& bestColumn, int& bestBoard, int alpha, int beta, int depth) {
 	//Value bestValue = value();
 	int bestValue = value(depth, bestBoard);
-	Board pMainboard = boards[0]; // preserve state of big board before function a move is done
 	if (depth < MAX_DEPTH){
 		++movesConsidered;
 		if (bestValue == UNDECIDED) {
+			Board pMainboard = boards[0]; // preserve state of big board before function a move is done
 			//for (int board = 1; board < 10; ++board){
 				//if (!checkFalseBoardMove(board) && !isAWin(HUMAN, board) && !isAWin(COMPUTER, board)){
 					for (int row = 0; beta > alpha && row < 3; ++row) {
@@ -97,7 +119,7 @@ int SuperTTT::chooseHumanMove(int& bestRow, int& bestColumn, int& bestBoard, int
 								checkWins(HUMAN);
 								int dummyRow, dummyColumn, dummyBoard;
 								if (bestBoard != 0){
-									dummyBoard = (column + 1) + (row * 3);; // calculate on which board next move must be set								
+									dummyBoard = (column + 1) + (row * 3); // calculate on which board next move must be set								
 									//giveRandomBoardWhenWon(dummyBoard); // to prevent move on board that is won
 									if (dummyBoard < 0 || dummyBoard > 9){
 										dummyBoard = 0;
@@ -129,6 +151,16 @@ int SuperTTT::chooseHumanMove(int& bestRow, int& bestColumn, int& bestBoard, int
 		}
 		cout << movesConsidered << endl;
 	}
+	//else{
+	//	// make value more when move causes next move to be set on a board that is won
+	//	int nextBoard = (bestColumn + 1) + (bestRow * 3);
+	//	if (isAWin(COMPUTER, nextBoard) || isAWin(HUMAN, nextBoard)){
+	//		bestValue = 5;
+	//	}
+	//	//if (boards[0](bestRow, bestColumn) != EMPTY){
+	//	//	bestValue = 5;
+	//	//}
+	//}
 	return bestValue;
 }
 
